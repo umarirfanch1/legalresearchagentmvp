@@ -1,0 +1,87 @@
+{
+  "name": "Legal Research MVP Agent",
+  "description": "Fetches legal documents from Drive, analyzes with Cohere embeddings + LLM, stores results back to Drive.",
+  "version": "1.0",
+  "nodes": [
+    {
+      "id": "cron_trigger",
+      "type": "cron",
+      "name": "Hourly Trigger",
+      "cron": "0 * * * *",
+      "outputs": ["drive_loader"]
+    },
+    {
+      "id": "drive_loader",
+      "type": "googleDriveLoader",
+      "name": "Google Drive Loader",
+      "serviceAccountKey": {
+        "type": "service_account",
+        "project_id": "legalresearchagent-mvp",
+        "private_key_id": "8401a2a5184f1aee48663ed03541d3bfebbf942f",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCY2OW0LUY+OdSh\nJmgPtq8gMPAbezVqVvFKwkN7umVQ/jEZzt8PWUfc5wbsxSJXfXEoSJq7HW7WGhzE\n6yEIUHBTf/Z/dhbJ0QKGiOJdpAxlcOFn67zdI8NIZ+nsWSdOy/wPvPgTPKwwy81B\n8XWzIE9hftagrK4wfBwQkRcvP582PR1Cs0SIzL4HA4ggz/vGR77Dw8QgUSJ1KM4V\nWB5j99MD4yI7gtzocuWsmlBcC7TrwteJXtvuA3twgTA9UtY/j0tykDZkSKXOWlLb\n7eTkSZys9AwVvVdHuntayUQ37HRzt2KnBHHdZwCAmAwLOimqaupaOYQwAsLv45ug\nn2hdO2ctAgMBAAECggEAAiwviXVwn4AIRbPpnBaudM3Lf3wPFIk2D32IvyQnIdwJ\nVqLL7HMKNgRLjcrqOSl5+WbV6KhQqwGJWO3iPBh21ZyRXUys25UV3sV25AiGQQdS\nnq6lztQ6a0Xyabfas6B5wvhljlI5IFv+JEAKZST7GFJYyOGre73WGhDZdUtc4qh2\nGy52lXU49m7+wqWt9usoTlEQoqWLGYYnA/QPtXsRnZhvfYFgRz1n1FLR33MwgQ7t\niNuaC9gH+W95htUgdffX9g4iSC9n7FeL2yh0Vjlz+xfFlbh2G5jha5aUfNvGhhdC\nf8kMTuOXdVEche+4Zj+0YQLksBU1ET1Z76Ro6XXgAQKBgQDIMFY2V7ZDMK4H/Exy\ntwNTA3OWxC5fMGGVZHuXYbZS3Hh9GO/6+8QmMEd/BhEZTXErfCrLnD8KntDOeHiz\nx7xvOSOVcUGODcdHSwEfFPTVrBvkVN8asVaTwKtjhzPgiWh2FPUqqkOmOh5zjuEo\nmmfw22UijQ+vbaQ1v5cEiK+zzQKBgQDDdb++8j2CYdOVrRCO4UeQuF0q38/XESLr\np3deR5lxjyiDvyj83qmhNX0VmPwWDd1LnzYybQs1TTL83C8Xmi7Jv5Du2Ku0R49T\nneiDuu5PCVb98E5IqbjBPoN5o3U0n65F/kaUpvOvRw0e2rFmgZIhXBkqlvKjUyu3\nUOBrvmfg4QKBgHZU9DENKeSPmt+HiFzqx2FDkgjVkB+eRqB7E/9It/BE+Efh/MDc\nH3b/ZNO171eIilPNArL2eeE6PW0+kwKaF02bdeg5WSmyBVCkClaoGY1QPfB7JqHt\nn6KY6fZcDhM0xfW+r6j3miNhCWz/USKiGrypwx9oSJRG+CD5TjhU358lAoGAZ1my\niqeRyIgrlaAN+k66RZaGhO4U+tYvzcUeA/b99qLIvGjupk6iCQC8ZBghaxPnqF3G\nDYHFBGkOhc9zAxrelIS7gN+GYuvXqFH9qPHFonsAyYMwEZHUhDGm2UGJ7spkHtRl\nw6JHha2fDWp7lQT8HLGTCQcJwzxuCB82myHx0WECgYAb90BC4cQAXCXK9MqQ3+n8\nam2yQdZN7tEfZCgUep/CiBM8q+sDMgSPWQi3tKVKYRGRxUtv+yLA3Q/0zvdRm2vQ\nuwoYEw8R7u/jnMR/2ntM9pjL1IY85JS/OD6bzv91MmVmjf4geM6+vkmAjr6+E7+h\nWnzSUmfIYWmVLBcyFN00rg==\n-----END PRIVATE KEY-----\n",
+        "client_email": "legalresearchagent@legalresearchagent-mvp.iam.gserviceaccount.com",
+        "client_id": "104814684251529108513",
+        "token_uri": "https://oauth2.googleapis.com/token"
+      },
+      "folderId": "1qG2YFJZ73M5aIzksLYjKJApQKObWqr4_",
+      "outputs": ["chunker"]
+    },
+    {
+      "id": "chunker",
+      "type": "textSplitter",
+      "name": "Chunker 800 Tokens",
+      "chunk_size": 800,
+      "chunk_overlap": 150,
+      "outputs": ["cohere_embedding"]
+    },
+    {
+      "id": "cohere_embedding",
+      "type": "embedding",
+      "name": "Cohere Embeddings",
+      "provider": "cohere",
+      "model": "command-light",
+      "outputs": ["vector_store"]
+    },
+    {
+      "id": "vector_store",
+      "type": "vectorStore",
+      "name": "Chroma Vector DB",
+      "provider": "chroma",
+      "persist_directory": "/data/chroma",
+      "outputs": ["retriever"]
+    },
+    {
+      "id": "retriever",
+      "type": "retriever",
+      "name": "Retriever",
+      "top_k": 6,
+      "outputs": ["cohere_llm"]
+    },
+    {
+      "id": "cohere_llm",
+      "type": "llm",
+      "name": "Cohere LLM Generator",
+      "provider": "cohere",
+      "model": "command-light",
+      "temperature": 0.2,
+      "max_tokens": 1200,
+      "prompt_template": "SYSTEM: You are an expert legal research assistant. Read the context and summarize legal issues, strategy, and next steps.\n\nCONTEXT:\n{context}\n\nTASK: Summarize actionable legal insights, cite sources (file/page), and mark unverified claims.\n\nOUTPUT: Markdown with bullets, confidence ratings, and recommendations.",
+      "outputs": ["drive_uploader"]
+    },
+    {
+      "id": "drive_uploader",
+      "type": "googleDriveUploader",
+      "name": "Google Drive Uploader",
+      "folderId": "11iQ4SzTe86Vw7KqnqueIPGDVDUU-cfDN",
+      "serviceAccountKey": {
+        "type": "service_account",
+        "project_id": "legalresearchagent-mvp",
+        "private_key_id": "8401a2a5184f1aee48663ed03541d3bfebbf942f",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCY2OW0LUY+OdSh\nJmgPtq8gMPAbezVqVvFKwkN7umVQ/jEZzt8PWUfc5wbsxSJXfXEoSJq7HW7WGhzE\n6yEIUHBTf/Z/dhbJ0QKGiOJdpAxlcOFn67zdI8NIZ+nsWSdOy/wPvPgTPKwwy81B\n8XWzIE9hftagrK4wfBwQkRcvP582PR1Cs0SIzL4HA4ggz/vGR77Dw8QgUSJ1KM4V\nWB5j99MD4yI7gtzocuWsmlBcC7TrwteJXtvuA3twgTA9UtY/j0tykDZkSKXOWlLb\n7eTkSZys9AwVvVdHuntayUQ37HRzt2KnBHHdZwCAmAwLOimqaupaOYQwAsLv45ug\nn2hdO2ctAgMBAAECggEAAiwviXVwn4AIRbPpnBaudM3Lf3wPFIk2D32IvyQnIdwJ\nVqLL7HMKNgRLjcrqOSl5+WbV6KhQqwGJWO3iPBh21ZyRXUys25UV3sV25AiGQQdS\nnq6lztQ6a0Xyabfas6B5wvhljlI5IFv+JEAKZST7GFJYyOGre73WGhDZdUtc4qh2\nGy52lXU49m7+wqWt9usoTlEQoqWLGYYnA/QPtXsRnZhvfYFgRz1n1FLR33MwgQ7t\niNuaC9gH+W95htUgdffX9g4iSC9n7FeL2yh0Vjlz+xfFlbh2G5jha5aUfNvGhhdC\nf8kMTuOXdVEche+4Zj+0YQLksBU1ET1Z76Ro6XXgAQKBgQDIMFY2V7ZDMK4H/Exy\ntwNTA3OWxC5fMGGVZHuXYbZS3Hh9GO/6+8QmMEd/BhEZTXErfCrLnD8KntDOeHiz\nx7xvOSOVcUGODcdHSwEfFPTVrBvkVN8asVaTwKtjhzPgiWh2FPUqqkOmOh5zjuEo\nmmfw22UijQ+vbaQ1v5cEiK+zzQKBgQDDdb++8j2CYdOVrRCO4UeQuF0q38/XESLr\np3deR5lxjyiDvyj83qmhNX0VmPwWDd1LnzYybQs1TTL83C8Xmi7Jv5Du2Ku0R49T\nneiDuu5PCVb98E5IqbjBPoN5o3U0n65F/kaUpvOvRw0e2rFmgZIhXBkqlvKjUyu3\nUOBrvmfg4QKBgHZU9DENKeSPmt+HiFzqx2FDkgjVkB+eRqB7E/9It/BE+Efh/MDc\nH3b/ZNO171eIilPNArL2eeE6PW0+kwKaF02bdeg5WSmyBVCkClaoGY1QPfB7JqHt\nn6KY6fZcDhM0xfW+r6j3miNhCWz/USKiGrypwx9oSJRG+CD5TjhU358lAoGAZ1my\niqeRyIgrlaAN+k66RZaGhO4U+tYvzcUeA/b99qLIvGjupk6iCQC8ZBghaxPnqF3G\nDYHFBGkOhc9zAxrelIS7gN+GYuvXqFH9qPHFonsAyYMwEZHUhDGm2UGJ7spkHtRl\nw6JHha2fDWp7lQT8HLGTCQcJwzxuCB82myHx0WECgYAb90BC4cQAXCXK9MqQ3+n8\nam2yQdZN7tEfZCgUep/CiBM8q+sDMgSPWQi3tKVKYRGRxUtv+yLA3Q/0zvdRm2vQ\nuwoYEw8R7u/jnMR/2ntM9pjL1IY85JS/OD6bzv91MmVmjf4geM6+vkmAjr6+E7+h\nWnzSUmfIYWmVLBcyFN00rg==\n-----END PRIVATE KEY-----\n",
+        "client_email": "legalresearchagent@legalresearchagent-mvp.iam.gserviceaccount.com",
+        "client_id": "104814684251529108513",
+        "token_uri": "https://oauth2.googleapis.com/token"
+      }
+    }
+  ]
+}
